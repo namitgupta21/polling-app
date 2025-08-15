@@ -32,26 +32,33 @@ router.post('/',verifyToken, async (req, res) => {
 })
 
 // POST vote for an option in a poll
-router.post('/:id/vote',verifyToken, async (req, res) => {
+router.post('/:id/vote', verifyToken, async (req, res) => {
   try {
-    const { optionIndex } = req.body
-    const poll = await Poll.findById(req.params.id)
+    const { optionIndex } = req.body;
+    const userEmail = req.user.email; // from verifyToken middleware
+
+    const poll = await Poll.findById(req.params.id);
 
     if (!poll || !poll.options[optionIndex]) {
-      return res.status(404).json({ error: 'Poll or option not found' })
+      return res.status(404).json({ error: 'Poll or option not found' });
     }
 
-    poll.options[optionIndex].votes += 1
-    const updatedPoll = await poll.save()
+    // Check if user already voted
+    if (poll.votedUsers.includes(userEmail)) {
+      return res.status(400).json({ error: 'You have already voted' });
+    }
 
-    res.json(updatedPoll)
+    // Record vote
+    poll.options[optionIndex].votes += 1;
+    poll.votedUsers.push(userEmail);
+
+    const updatedPoll = await poll.save();
+    res.json(updatedPoll);
+
   } catch (err) {
-    res.status(500).json({ error: 'Failed to cast vote' })
+    res.status(500).json({ error: 'Failed to cast vote' });
   }
+});
 
-
-  
-
-})
 
 export default router

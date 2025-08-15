@@ -11,11 +11,15 @@ interface Poll {
   _id: string
   question: string
   options: Option[]
+  votedUsers: string[]
 }
 
 export default function ViewPolls() {
   const [polls, setPolls] = useState<Poll[]>([])
   const [loading, setLoading] = useState(true)
+  // safely read stored user (set by Login) and extract email
+  const storedUser = JSON.parse(localStorage.getItem("user") || "null") as { email?: string } | null
+  const userEmail = storedUser?.email ?? ""
 
   const fetchPolls = async () => {
   const token = JSON.parse(localStorage.getItem("user") || "{}").token
@@ -74,26 +78,34 @@ export default function ViewPolls() {
         ) : polls.length === 0 ? (
           <p>No polls available.</p>
         ) : (
-          polls.map((poll) => (
-            <div key={poll._id} className="border p-4 rounded-lg shadow space-y-3">
-              <h3 className="text-lg font-semibold">{poll.question}</h3>
-              <div className="space-y-2">
-                {poll.options.map((option, index) => (
-                  <div key={index} className="flex items-center justify-between gap-2">
-                    <span>{option.text}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">{option.votes} votes</span>
-                      <Button size="sm" onClick={() => handleVote(poll._id, index)}>
-                        Vote
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </>
-  )
-}
+          polls.map((poll) => {
+            const hasVoted = !!userEmail && poll.votedUsers?.includes(userEmail) // check using stored email
+             return (
+               <div key={poll._id} className="border p-4 rounded-lg shadow space-y-3">
+                 <h3 className="text-lg font-semibold">{poll.question}</h3>
+                 <div className="space-y-2">
+                   {poll.options.map((option, index) => (
+                     <div key={index} className="flex items-center justify-between gap-2">
+                       <span>{option.text}</span>
+                       <div className="flex items-center gap-2">
+                         <span className="text-sm text-gray-600">{option.votes} votes</span>
+                        <Button
+                          size="sm"
+                          onClick={() => handleVote(poll._id, index)}
+                          disabled={hasVoted}
+                          className={hasVoted ? "bg-gray-400 text-white cursor-not-allowed" : ""}
+                        >
+                          {hasVoted ? "Voted" : "Vote"}
+                        </Button>
+                       </div>
+                     </div>
+                   ))}
+                 </div>
+               </div>
+             )
+           })
+         )}
+       </div>
+     </>
+   )
+ }

@@ -7,10 +7,15 @@ const pollSchema = new mongoose.Schema({
   },
   options: [
     {
-      text: { type: String, required: true },
-      votes: { type: Number, default: 0 },
+      text: { type: String, required: true }, //storing text for option
+      votes: { type: Number, default: 0 },    
     },
   ],
+  votedUsers: [
+    {
+      type: String, // storing email here
+    }
+  ]
 })
 
 export default mongoose.model('Poll', pollSchema)

@@ -31,7 +31,7 @@ export default function Login() {
         setError(data.error || "Login failed")
       } else {
         // Save login state (basic)
-        localStorage.setItem("user", JSON.stringify({ token: data.token }))
+        localStorage.setItem("user", JSON.stringify({ token: data.token, email: data.email  }))
         navigate("/polls") // or wherever your viewpolls page is
       }
     } catch (err) {
